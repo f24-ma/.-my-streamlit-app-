@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 from zipfile import ZipFile
-import io
 
 # try to import normalize (urduhack); fallback to identity
 try:
@@ -60,10 +59,10 @@ st.markdown("Choose input: type/paste text or upload (.txt or .zip containing .t
 col1, col2 = st.columns([2,1])
 
 with col1:
-    option = st.radio("Input method:", [" Type / Paste", "📁 Upload file (.txt or .zip)"])
+    option = st.radio("Input method:", ["Type / Paste", "Upload file (.txt or .zip)"])
     text = ""
     uploaded = None
-    if option == " Type / Paste":
+    if option == "Type / Paste":
         text = st.text_area("Paste or type Urdu ghazal here", height=250)
     else:
         uploaded = st.file_uploader("Upload .txt or .zip (zip should contain .txt files)", type=['txt','zip'])
@@ -76,7 +75,7 @@ with col2:
 
 if process_btn:
     all_lines = []
-    if option != " Type / Paste" and uploaded is not None:
+    if option != "Type / Paste" and uploaded is not None:
         saved = "/content/uploaded_input"
         os.makedirs(saved, exist_ok=True)
         p = os.path.join(saved, uploaded.name)
@@ -108,6 +107,11 @@ if process_btn:
 
         clean_path = "/content/all_poems_clean.txt"
         roman_path = "/content/all_poems_roman.txt"
+
+        #  Make sure folders exist
+        os.makedirs(os.path.dirname(clean_path), exist_ok=True)
+        os.makedirs(os.path.dirname(roman_path), exist_ok=True)
+
         with open(clean_path, "w", encoding="utf-8") as f:
             f.write("\n".join(normalized))
         with open(roman_path, "w", encoding="utf-8") as f:
