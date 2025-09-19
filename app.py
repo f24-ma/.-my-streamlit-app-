@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import tempfile
 from zipfile import ZipFile
 
 # try to import normalize (urduhack); fallback to identity
@@ -51,8 +52,10 @@ def read_all_lines_from_files(file_list):
                     pass
     return lines
 
+# ----------------- STREAMLIT APP -----------------
+
 st.set_page_config(page_title="Urdu Ghazal Processor", layout="wide")
-st.title(" Urdu Ghazal Processor (Colab)")
+st.title("Urdu Ghazal Processor (Colab)")
 
 st.markdown("Choose input: type/paste text or upload (.txt or .zip containing .txt files).")
 
@@ -76,8 +79,7 @@ with col2:
 if process_btn:
     all_lines = []
     if option != "Type / Paste" and uploaded is not None:
-        saved = "/content/uploaded_input"
-        os.makedirs(saved, exist_ok=True)
+        saved = tempfile.mkdtemp()
         p = os.path.join(saved, uploaded.name)
         with open(p, "wb") as f:
             f.write(uploaded.getbuffer())
@@ -105,12 +107,10 @@ if process_btn:
             st.markdown(f"<p style='font-size:20px; direction: rtl;'>{u}</p>", unsafe_allow_html=True)
             st.write("Roman:", r)
 
-        clean_path = "/content/all_poems_clean.txt"
-        roman_path = "/content/all_poems_roman.txt"
-
-        #  Make sure folders exist
-        os.makedirs(os.path.dirname(clean_path), exist_ok=True)
-        os.makedirs(os.path.dirname(roman_path), exist_ok=True)
+        # Save in temporary folder (cross-platform safe)
+        temp_dir = tempfile.gettempdir()
+        clean_path = os.path.join(temp_dir, "all_poems_clean.txt")
+        roman_path = os.path.join(temp_dir, "all_poems_roman.txt")
 
         with open(clean_path, "w", encoding="utf-8") as f:
             f.write("\n".join(normalized))
@@ -118,6 +118,6 @@ if process_btn:
             f.write("\n".join(romanized))
 
         with open(clean_path, "rb") as f:
-            st.download_button("⬇ Download Clean Urdu", f.read(), file_name="all_poems_clean.txt", mime="text/plain")
+            st.download_button("Download Clean Urdu", f.read(), file_name="all_poems_clean.txt", mime="text/plain")
         with open(roman_path, "rb") as f:
-            st.download_button("⬇ Download Roman Urdu", f.read(), file_name="all_poems_roman.txt", mime="text/plain")
+            st.download_button("Download Roman Urdu", f.read(), file_name="all_poems_roman.txt", mime="text/plain")
